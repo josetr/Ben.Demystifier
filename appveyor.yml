@@ -24,9 +24,12 @@ build_script:
   
 test: off
 
-deploy: off
+deploy:
+  provider: NuGet
+  server: https://www.myget.org/F/vsixtesting/api/v2/package
+  api_key:
+    secure: 7fpFGKl529yWoO7qD5t+quDen2GSeUfdsuGOYH3zMSI/nwDEY9bvyiOl/xOoaajX
+  artifact: /.*\.nupkg/ 
 
 artifacts:
-- path: artifacts/build
-- path: artifacts/packages
-- path: artifacts/test
+- path: '**\*.nupkg'

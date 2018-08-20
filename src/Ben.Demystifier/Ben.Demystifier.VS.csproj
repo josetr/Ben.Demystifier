@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Product>Ben Core</Product>
+        <Title>Ben.Demystifier</Title>
+        <Description>High performance understanding for stack traces (Make error logs more productive)</Description>
+        <Authors>Ben Adams</Authors>
+        <RepositoryUrl>https://github.com/benaadams/Ben.Demystifier</RepositoryUrl>
+        <PackageProjectUrl>https://github.com/benaadams/Ben.Demystifier</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/benaadams/Ben.Demystifier/blob/master/LICENSE</PackageLicenseUrl>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <TargetFrameworks>net45</TargetFrameworks>
+        <SignAssembly>true</SignAssembly>
+        <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="..\..\bin\Ben.Demystifier.VS.IPortablePdbReader\$(Configuration)\net45\Ben.Demystifier.VS.IPortablePdbReader.dll" />
+        <EmbeddedResource Include="..\..\bin\Ben.Demystifier.VS.PortablePdbReader\$(Configuration)\net45\Ben.Demystifier.VS.PortablePdbReader.dll" />
+        <EmbeddedResource Include="..\..\references\System.Collections.Immutable.dll" />
+        <EmbeddedResource Include="..\..\references\System.Reflection.Metadata.dll" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="Microsoft.CSharp" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\IPortablePdbReader\Ben.Demystifier.VS.IPortablePdbReader.csproj" PrivateAssets="all" Private="false" />
+        <ProjectReference Include="..\PortablePdbReader\Ben.Demystifier.VS.PortablePdbReader.csproj" PrivateAssets="all" ReferenceOutputAssembly="false" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Nerdbank.GitVersioning" Version="2.1.17" PrivateAssets="all" />
+    </ItemGroup>
+</Project>

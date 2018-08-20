@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Generic.Enumerable;
 using System.Diagnostics.Internal;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -19,6 +20,8 @@ namespace System.Diagnostics
 {
     public partial class EnhancedStackTrace
     {
+        static Lazy<AppDomain> portablePdbReaderDomain = new Lazy<AppDomain>(() => VS.RemoteAppDomain.Setup());
+
         private static List<EnhancedStackFrame> GetFrames(Exception exception)
         {
             if (exception == null)
@@ -29,6 +32,12 @@ namespace System.Diagnostics
             var needFileInfo = true;
             var stackTrace = new StackTrace(exception, needFileInfo);
 
+            return PreGetFrames(stackTrace);
+        }
+
+        private static List<EnhancedStackFrame> PreGetFrames(StackTrace stackTrace)
+        {
+            VS.ThisAppDomain.Setup();
             return GetFrames(stackTrace);
         }
 
@@ -42,9 +51,14 @@ namespace System.Diagnostics
                 return frames;
             }
 
-            using (var portablePdbReader = new PortablePdbReader())
+            var portablePdbReader = new Lazy<IPortablePdbReader>(() =>
             {
+                return (IPortablePdbReader)portablePdbReaderDomain.Value.CreateInstanceAndUnwrap(
+                    "Ben.Demystifier.VS.PortablePdbReader", "System.Diagnostics.Internal.PortablePdbReader");
+            });
 
+            try
+            {
                 for (var i = 0; i < stackFrames.Length; i++)
                 {
                     var frame = stackFrames[i];
@@ -60,20 +74,24 @@ namespace System.Diagnostics
                     var row = frame.GetFileLineNumber();
                     var column = frame.GetFileColumnNumber();
                     var ilOffset = frame.GetILOffset();
+
                     if (string.IsNullOrEmpty(fileName) && ilOffset >= 0)
                     {
                         // .NET Framework and older versions of mono don't support portable PDBs
                         // so we read it manually to get file name and line information
-                        portablePdbReader.PopulateStackFrame(frame, method, frame.GetILOffset(), out fileName, out row, out column);
+                        portablePdbReader.Value.PopulateStackFrame(method.Module.Assembly.IsDynamic, method.Module.Assembly.Location, method.MetadataToken, frame.GetILOffset(), out fileName, out row, out column);
                     }
 
                     var stackFrame = new EnhancedStackFrame(frame, GetMethodDisplayString(method), fileName, row, column);
-
-
                     frames.Add(stackFrame);
                 }
 
                 return frames;
+            }
+            finally
+            {
+                if (portablePdbReader.IsValueCreated)
+                    portablePdbReader.Value.Dispose();
             }
         }
 
